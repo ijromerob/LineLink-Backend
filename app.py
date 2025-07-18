@@ -2,7 +2,7 @@ import os
 import psycopg2
 import bcrypt
 from dotenv import load_dotenv
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 INSERT_NEW_USER = """
 INSERT INTO Users (email, password_hash, account_type, first_name, last_name, company)
@@ -20,7 +20,7 @@ connection = psycopg2.connect(database_url)
 
 
 # the routes that will be using
-@app.post("/api/user")
+@app.post("/api/signin")
 def create_user():
     data = request.get_json()
     first_name = data["firstName"]
@@ -28,6 +28,8 @@ def create_user():
     email = data["email"]
     company = data["company"]
     password = data["password"]
+
+    # by default it will assign everything as production employee
     account_type = data.get("accountType", "production_employee")
 
     password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
@@ -56,3 +58,7 @@ def create_user():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
