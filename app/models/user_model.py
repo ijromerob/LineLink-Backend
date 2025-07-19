@@ -1,5 +1,6 @@
 import bcrypt
 from app.db import connection
+from flask import jsonify
 
 INSERT_NEW_USER = """
 INSERT INTO Users (email, password_hash, account_type, first_name, last_name, company)
@@ -9,53 +10,6 @@ RETURNING user_id;
 
 
 def create_user(data):
-    """
-    Create a new user account
-    ---
-    tags:
-      - Users
-    consumes:
-      - application/json
-    parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          required:
-            - firstName
-            - lastName
-            - email
-            - company
-            - password
-          properties:
-            firstName:
-              type: string
-            lastName:
-              type: string
-            email:
-              type: string
-            company:
-              type: string
-            password:
-              type: string
-            accountType:
-              type: string
-              default: production_employee
-    responses:
-      201:
-        description: User created successfully
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-            user_id:
-              type: integer
-              example: 1
-      500:
-        description: Server error
-    """
 
     first_name = data["firstName"]
     last_name = data["lastName"]
