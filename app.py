@@ -1,7 +1,8 @@
 import os
 import psycopg2
 import bcrypt
-from dotenv import load_dotenv
+
+# from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flasgger import Swagger
 
@@ -11,8 +12,8 @@ VALUES (%s, %s, %s, %s, %s, %s)
 RETURNING user_id;
 """
 
-# reads the environment variables
-load_dotenv()
+# # reads the environment variables
+# load_dotenv()
 
 app = Flask(__name__)
 
@@ -23,7 +24,7 @@ connection = psycopg2.connect(database_url)
 
 
 # the routes that will be using
-@app.post("/api/signin")
+@app.post("/api/signup")
 def create_user():
     """
     Create a new user account
