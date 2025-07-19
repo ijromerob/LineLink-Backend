@@ -1,5 +1,5 @@
 import bcrypt
-from app import connection
+from app.db import connection
 
 INSERT_NEW_USER = """
 INSERT INTO Users (email, password_hash, account_type, first_name, last_name, company)
