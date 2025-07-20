@@ -103,6 +103,32 @@ FROM WorkOrders wo
   JOIN Parts p ON b.part_number = p.part_number
 ORDER BY wo.work_order_id,
   b.part_number;
+-- 15. Status ENUM Type
+CREATE TYPE station_status AS ENUM (
+  'not_started',
+  'in_progress',
+  'completed',
+  'alert',
+  'hold'
+);
+-- 16. WorkOrderStationStatus Table
+CREATE TABLE WorkOrderStationStatus (
+  work_order_id INT REFERENCES WorkOrders(work_order_id) ON DELETE CASCADE,
+  station_number TEXT REFERENCES Stations(station_number) ON DELETE CASCADE,
+  status station_status NOT NULL DEFAULT 'not_started',
+  notes TEXT,
+  updated_at TIMESTAMP DEFAULT now(),
+  PRIMARY KEY (work_order_id, station_number)
+);
+CREATE TABLE UnitStationStatus (
+  work_order_id INT REFERENCES WorkOrders(work_order_id) ON DELETE CASCADE,
+  unit_number INT CHECK (unit_number > 0),
+  station_number TEXT REFERENCES Stations(station_number) ON DELETE CASCADE,
+  status station_status NOT NULL DEFAULT 'not_started',
+  notes TEXT,
+  updated_at TIMESTAMP DEFAULT now(),
+  PRIMARY KEY (work_order_id, unit_number, station_number)
+);
 ------------------------------------
 -- MOCK DATA
 -- 1. Parts
@@ -210,3 +236,30 @@ INSERT INTO PartSupplyLog (
     quantity_supplied
   )
 VALUES (1, '1', '200-00001', 16);
+DO $$
+DECLARE wo RECORD;
+unit_num INT;
+station RECORD;
+BEGIN FOR wo IN
+SELECT work_order_id,
+  quantity_to_produce
+FROM WorkOrders LOOP FOR unit_num IN 1..wo.quantity_to_produce LOOP FOR station IN
+SELECT DISTINCT station_number
+FROM StationWorkOrderParts
+WHERE work_order_id = wo.work_order_id LOOP
+INSERT INTO UnitStationStatus (
+    work_order_id,
+    unit_number,
+    station_number,
+    status
+  )
+VALUES (
+    wo.work_order_id,
+    unit_num,
+    station.station_number,
+    'not_started'
+  ) ON CONFLICT (work_order_id, unit_number, station_number) DO NOTHING;
+END LOOP;
+END LOOP;
+END LOOP;
+END $$;

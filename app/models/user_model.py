@@ -2,6 +2,8 @@ import bcrypt
 from app.db import connection
 from flask import jsonify
 
+# query to insert a new user
+
 INSERT_NEW_USER = """
 INSERT INTO Users (email, password_hash, account_type, first_name, last_name, company)
 VALUES (%s, %s, %s, %s, %s, %s)
