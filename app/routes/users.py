@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from app.models.user_model import create_user
+from app.models.user_model import create_user, log_in_user
 
 users_bp = Blueprint("users", __name__)
 
@@ -55,4 +55,11 @@ def add_user():
     """
     data = request.get_json()
     response = create_user(data)
+    return response
+
+
+@users_bp.post("/signin")
+def log_in():
+    data = request.get_json()
+    response = log_in_user(data)
     return response
