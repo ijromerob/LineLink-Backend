@@ -13,7 +13,7 @@ def create_app():
 
     app.config.from_object(Config)
 
-    CORS(app, origins=["http://localhost:3000"])
+    CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 
     register_blueprints(app)
 
