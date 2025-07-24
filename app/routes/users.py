@@ -60,6 +60,80 @@ def add_user():
 
 @users_bp.post("/signin")
 def log_in():
+    """
+    Authenticate a user and return a JWT token
+    ---
+    tags:
+      - Users
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+              format: email
+              example: user@example.com
+            password:
+              type: string
+              example: yourpassword
+    responses:
+      200:
+        description: Successful login returns JWT token and user info
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Login successful
+            token:
+              type: string
+              description: JWT token for authentication
+            user:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  example: 1
+                account_type:
+                  type: string
+                  example: production_employee
+                first_name:
+                  type: string
+                  example: Ivan
+                last_name:
+                  type: string
+                  example: Romero
+                company:
+                  type: string
+                  example: Acme Inc.
+                email:
+                  type: string
+                  example: user@example.com
+      401:
+        description: Invalid email or password
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Invalid email or password
+      500:
+        description: Server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Internal server error
+    """
     data = request.get_json()
     response = log_in_user(data)
     return response
