@@ -2,6 +2,7 @@ from flask import Blueprint, request
 from app.models.work_order_model import (
     retrieve_work_orders,
     retrieve_units_by_work_order_id,
+    add_work_order,
 )
 
 work_orders_bp = Blueprint("work_orders", __name__)
@@ -140,4 +141,52 @@ def get_work_order_by_id(work_order_id):
     """
     integer_work_order_id = int(work_order_id.replace("WO", ""))
     response = retrieve_units_by_work_order_id(integer_work_order_id)
+    return response
+
+
+@work_orders_bp.post("/create_workorder")
+def create_work_order():
+    """
+    Create a New Work Order
+    ---
+    tags:
+      - Work Orders
+    summary: Create a new work order and initialize required parts and statuses.
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - product_number
+            - quantity
+          properties:
+            product_number:
+              type: string
+              example: "100-00001"
+            quantity:
+              type: integer
+              example: 10
+    responses:
+      201:
+        description: Work order successfully created
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Work order created
+            work_order_id:
+              type: string
+              example: WO0000001
+      400:
+        description: Bad request (e.g. missing fields or invalid format)
+      500:
+        description: Server error
+    """
+    data = request.get_json()
+    response = add_work_order(data)
     return response
