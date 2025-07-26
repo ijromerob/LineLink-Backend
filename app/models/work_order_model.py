@@ -110,3 +110,78 @@ def retrieve_units_by_work_order_id(work_order_id):
         return jsonify({"error": "Invalid work order ID format"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+INSERT_NEW_WORK_ORDER = """
+INSERT INTO WorkOrders (product_number, quantity_to_produce)
+VALUES (%s, %s)
+RETURNING work_order_id;
+"""
+
+INSERT_NEW_WORKORDER_PARTS = """
+INSERT INTO WorkOrderParts (work_order_id, part_number, quantity_needed)
+SELECT
+    %s AS work_order_id,
+    b.part_number,
+    b.quantity * %s AS quantity_needed
+FROM BOM b
+WHERE b.product_number = %s;
+"""
+
+INSERT_NEW_WORKSTATION_PARTS = """
+INSERT INTO StationWorkOrderParts (
+    work_order_id, station_number, part_number, quantity_needed
+)
+SELECT
+    %s AS work_order_id,
+    sp.station_number,
+    sp.part_number,
+    sp.quantity_required * %s AS quantity_needed
+FROM BOM b
+JOIN StationParts sp ON b.part_number = sp.part_number
+WHERE b.product_number = %s;
+"""
+
+INITIALIZE_STATUS = """
+INSERT INTO WorkOrderStationStatus (work_order_id, station_number, status)
+SELECT
+    %s,
+    s.station_number,
+    'not_started'::station_status
+FROM Stations s;
+"""
+
+
+def add_work_order(data):
+    product_number = data["product_number"]
+    quantity = data["quantity"]
+
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(INSERT_NEW_WORK_ORDER, (product_number, quantity))
+                work_order_id = cursor.fetchone()[0]
+
+                cursor.execute(
+                    INSERT_NEW_WORKORDER_PARTS,
+                    (work_order_id, quantity, product_number),
+                )
+
+                cursor.execute(
+                    INSERT_NEW_WORKSTATION_PARTS,
+                    (work_order_id, quantity, product_number),
+                )
+
+                cursor.execute(INITIALIZE_STATUS, (work_order_id,))
+
+        return (
+            jsonify(
+                {
+                    "message": "Work order created",
+                    "work_order_id": f"WO{work_order_id:07d}",
+                }
+            ),
+            201,
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
