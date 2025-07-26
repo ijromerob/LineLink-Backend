@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from app.models.user_model import create_user, log_in_user
+from app.models.user_model import create_user, log_in_user, patch_user_company
 
 users_bp = Blueprint("users", __name__)
 
@@ -136,4 +136,51 @@ def log_in():
     """
     data = request.get_json()
     response = log_in_user(data)
+    return response
+
+
+@users_bp.patch("/<int:user_id>/company")
+def change_company(user_id):
+    """
+    Update User's Company
+    ---
+    tags:
+      - Users
+    summary: Update the company of a specific user
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        type: integer
+        description: ID of the user to update
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - company
+          properties:
+            company:
+              type: string
+              example: "New Company Inc."
+    responses:
+      200:
+        description: Company updated successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Company updated
+      400:
+        description: Invalid input
+      404:
+        description: User not found
+      500:
+        description: Server error
+    """
+    data = request.get_json()
+    company = data["company"]
+    response = patch_user_company(user_id, company)
     return response

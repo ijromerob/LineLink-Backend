@@ -133,3 +133,21 @@ def get_or_create_user(email, first_name, last_name):
                 )
                 user_id = cursor.fetchone()[0]
                 return user_id, default_type
+
+
+UPDATE_USER_COMPANY = """
+UPDATE users SET company = %s WHERE user_id = %s RETURNING user_id
+"""
+
+
+def patch_user_company(user_id, company):
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(UPDATE_USER_COMPANY, (company, user_id))
+                result = cursor.fetchone()
+                if not result:
+                    return jsonify({"error": "User not found"}), 404
+        return jsonify({"message": "Company Updated"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
