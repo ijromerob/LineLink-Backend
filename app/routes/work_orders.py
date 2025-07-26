@@ -151,41 +151,41 @@ def create_work_order():
     ---
     tags:
       - Work Orders
-    description: Create a new work order based on a product number and quantity. This will initialize required parts and station data.
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-              - product_number
-              - quantity
-            properties:
-              product_number:
-                type: string
-                example: "P123"
-              quantity:
-                type: integer
-                example: 50
+    summary: Create a new work order and initialize required parts and statuses.
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - product_number
+            - quantity
+          properties:
+            product_number:
+              type: string
+              example: "100-00001"
+            quantity:
+              type: integer
+              example: 10
     responses:
       201:
         description: Work order successfully created
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: Work order created
-                work_order_id:
-                  type: string
-                  example: WO0000123
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Work order created
+            work_order_id:
+              type: string
+              example: WO0000001
       400:
-        description: Invalid input format
+        description: Bad request (e.g. missing fields or invalid format)
       500:
-        description: Server error while creating the work order
+        description: Server error
     """
     data = request.get_json()
     response = add_work_order(data)
