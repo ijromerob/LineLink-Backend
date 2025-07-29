@@ -129,6 +129,16 @@ CREATE TABLE UnitStationStatus (
   updated_at TIMESTAMP DEFAULT now(),
   PRIMARY KEY (work_order_id, unit_number, station_number)
 );
+CREATE TABLE PartRequests (
+  request_id SERIAL PRIMARY KEY,
+  work_order_id INT REFERENCES WorkOrders(work_order_id) ON DELETE CASCADE,
+  station_number TEXT REFERENCES Stations(station_number) ON DELETE CASCADE,
+  part_number TEXT REFERENCES Parts(part_number) ON DELETE CASCADE,
+  quantity_requested NUMERIC NOT NULL CHECK (quantity_requested > 0),
+  requested_by INT REFERENCES Users(user_id),
+  request_date TIMESTAMP DEFAULT NOW(),
+  status TEXT DEFAULT 'pending' -- Optional: 'pending', 'fulfilled', 'cancelled'
+);
 ------------------------------------
 -- MOCK DATA
 -- 1. Parts

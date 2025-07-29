@@ -51,3 +51,64 @@ def get_needed_parts():
                 return jsonify(report), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+INSERT_PART_REQUEST = """
+INSERT INTO PartRequests (
+            work_order_id,
+            station_number,
+            part_number,
+            quantity_requested,
+            requested_by
+        )
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING request_id, work_order_id, station_number, part_number, quantity_requested, request_date, status;
+"""
+
+
+def add_part_request(data):
+    work_order_str = data["work_order_id"]
+    if not work_order_str.startswith("WO") or not work_order_str[2:].isdigit():
+        return jsonify({"error": "Invalid work_order_id format"}), 400
+
+    work_order_id = int(work_order_str[2:])
+
+    station_number = data["station_number"]
+    part_number = data["part_number"]
+    quantity_requested = data["quantity_requested"]
+    requested_by = data["requested_by"]
+
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    INSERT_PART_REQUEST,
+                    (
+                        work_order_id,
+                        station_number,
+                        part_number,
+                        quantity_requested,
+                        requested_by,
+                    ),
+                )
+                result = cursor.fetchone()
+
+        return (
+            jsonify(
+                {
+                    "message": "Part request created",
+                    "request": {
+                        "request_id": result[0],
+                        "work_order_id": result[1],
+                        "station_number": result[2],
+                        "part_number": result[3],
+                        "quantity_requested": float(result[4]),
+                        "request_date": result[5].isoformat(),
+                        "status": result[6],
+                    },
+                }
+            ),
+            201,
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
