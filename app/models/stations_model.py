@@ -1,5 +1,3 @@
-import jwt
-from datetime import datetime, timedelta
 from app.db import connection
 from flask import jsonify
 from app.config import Config
@@ -16,7 +14,11 @@ INSERT INTO WorkOrderStationStatus (work_order_id, station_number, notes, update
 
 
 def post_comment(data):
-    work_order_id = data["work_order_id"]
+    work_order_str = data["work_order_id"]
+    if not work_order_str.startswith("WO") or not work_order_str[2:].isdigit():
+        return jsonify({"error": "Invalid work_order_id format"}), 400
+
+    work_order_id = int(work_order_str[2:])
     station_number = data["station_number"]
     comment = data["comment"]
 
