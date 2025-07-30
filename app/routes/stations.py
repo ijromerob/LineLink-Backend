@@ -26,8 +26,8 @@ def add_comment():
             - comment
           properties:
             work_order_id:
-              type: integer
-              example: 1
+              type: string
+              example: WO0000001
               description: ID of the work order
             station_number:
               type: string
