@@ -9,10 +9,11 @@ SELECT
   wo.quantity_to_produce,
   COUNT(wop.part_number) AS total_parts_needed,
   COUNT(CASE WHEN wop.quantity_supplied > 0 THEN 1 END) AS parts_supplied,
-  COUNT(CASE WHEN wop.quantity_supplied = 0 THEN 1 END) AS parts_missing
+  COUNT(CASE WHEN wop.quantity_supplied = 0 THEN 1 END) AS parts_missing,
+  wo.is_completed
 FROM WorkOrders wo
 JOIN WorkOrderParts wop ON wo.work_order_id = wop.work_order_id
-GROUP BY wo.work_order_id, wo.product_number, wo.quantity_to_produce
+GROUP BY wo.work_order_id, wo.product_number, wo.quantity_to_produce, wo.is_completed
 ORDER BY wo.work_order_id ASC;
 """
 
@@ -33,6 +34,7 @@ def retrieve_work_orders():
                         total_parts_needed,
                         parts_supplied,
                         parts_missing,
+                        is_completed,
                     ) = row
                     work_orders.append(
                         {
@@ -42,6 +44,7 @@ def retrieve_work_orders():
                             "total_parts_needed": total_parts_needed,
                             "parts_supplied": parts_supplied,
                             "parts_missing": parts_missing,
+                            "is_completed": is_completed,
                         }
                     )
         return jsonify({"work_orders": work_orders}), 200

@@ -12,80 +12,56 @@ work_orders_bp = Blueprint("work_orders", __name__)
 @work_orders_bp.get("/")
 def obtain_work_orders():
     """
-    Get Unit Status and Parts for a Work Order
+    Get all work orders summary
     ---
     tags:
       - Work Orders
-    summary: Retrieve all units and their station-level part statuses and comments for a given work order.
-    parameters:
-      - name: work_order_id
-        in: path
-        required: true
-        description: Numeric ID of the work order (e.g., 1 for WO0000001)
-        schema:
-          type: integer
+    summary: Retrieve all work orders with part supply status
+    description: |
+      Returns a list of all work orders, including:
+        - Work order ID
+        - Product number
+        - Quantity to produce
+        - Total parts needed
+        - Parts supplied
+        - Parts missing
+        - Completion status
     responses:
       200:
-        description: Units and station data retrieved successfully
+        description: Successfully retrieved work orders
         content:
           application/json:
             schema:
               type: object
               properties:
-                is_completed:
-                  type: boolean
-                  example: false
-                units:
+                work_orders:
                   type: array
                   items:
                     type: object
                     properties:
-                      unit_number:
+                      work_order_id:
+                        type: string
+                        example: "WO0000001"
+                      product_number:
+                        type: string
+                        example: "100-00001"
+                      quantity_to_produce:
+                        type: integer
+                        example: 10
+                      total_parts_needed:
+                        type: integer
+                        example: 4
+                      parts_supplied:
+                        type: integer
+                        example: 3
+                      parts_missing:
                         type: integer
                         example: 1
-                      stations:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            station_number:
-                              type: string
-                              example: "1"
-                            unit_status:
-                              type: string
-                              enum: ["not_started", "in_progress", "completed", "alert", "hold"]
-                              example: "in_progress"
-                            station_status:
-                              type: string
-                              enum: ["not_started", "in_progress", "completed", "alert", "hold"]
-                              example: "in_progress"
-                            station_comments:
-                              type: string
-                              example: "Delay due to part shortage"
-                            part_number:
-                              type: string
-                              example: "200-00001"
-                            part_description:
-                              type: string
-                              example: "Car Door"
-                            quantity_required:
-                              type: number
-                              example: 4
-                            quantity_supplied:
-                              type: number
-                              example: 2
-      400:
-        description: Invalid work order ID format
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: Invalid work order ID format
+                      is_completed:
+                        type: boolean
+                        example: false
       500:
-        description: Server error while retrieving units
+        description: Server error while retrieving work orders
         content:
           application/json:
             schema:
@@ -93,9 +69,8 @@ def obtain_work_orders():
               properties:
                 error:
                   type: string
-                  example: Database connection failed
+                  example: "Database connection failed"
     """
-
     response = retrieve_work_orders()
     return response
 
