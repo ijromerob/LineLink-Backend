@@ -3,6 +3,7 @@ from app.models.work_order_model import (
     retrieve_work_orders,
     retrieve_units_by_work_order_id,
     add_work_order,
+    post_completion,
 )
 
 work_orders_bp = Blueprint("work_orders", __name__)
@@ -189,4 +190,61 @@ def create_work_order():
     """
     data = request.get_json()
     response = add_work_order(data)
+    return response
+
+
+@work_orders_bp.post("/complete")
+def complete_work_order():
+    """
+    Mark Work Order as Complete
+    ---
+    tags:
+      - Work Orders
+    summary: Marks a work order as complete if all stations have finished
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - work_order_id
+          properties:
+            work_order_id:
+              type: string
+              example: "WO0000001"
+              description: The work order ID in display format
+    responses:
+      200:
+        description: Work order marked as complete
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Work order marked as complete
+            work_order_id:
+              type: string
+              example: WO0000001
+      400:
+        description: Work order not ready or invalid format
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Work order is not ready to be marked complete
+      500:
+        description: Internal server error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Internal server error
+    """
+    data = request.get_json()
+    response = post_completion(data)
     return response

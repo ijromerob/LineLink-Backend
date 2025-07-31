@@ -185,3 +185,51 @@ def add_work_order(data):
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+UPDATE_WORK_ORDER_COMPLETE = """
+UPDATE WorkOrders
+SET is_completed = TRUE
+WHERE work_order_id = %s
+  AND NOT EXISTS (
+    SELECT 1 FROM WorkOrderStationStatus
+    WHERE work_order_id = %s AND status != 'completed'
+  )
+RETURNING work_order_id;
+"""
+
+
+def post_completion(data):
+    work_order_str = data["work_order_id"]
+    if not work_order_str.startswith("WO") or not work_order_str[2:].isdigit():
+        return jsonify({"error": "Invalid work_order_id format"}), 400
+
+    work_order_id = int(work_order_str[2:])
+
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    UPDATE_WORK_ORDER_COMPLETE, (work_order_id, work_order_id)
+                )
+                result = cursor.fetchone()
+                if result:
+                    return (
+                        jsonify(
+                            {
+                                "message": "Work order marked as complete",
+                                "work_order_id": f"WO{result[0]:07d}",
+                            }
+                        ),
+                        200,
+                    )
+                else:
+                    return (
+                        jsonify(
+                            {"message": "Work order is not ready to be marked complete"}
+                        ),
+                        400,
+                    )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
