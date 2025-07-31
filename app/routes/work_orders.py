@@ -272,3 +272,6 @@ def complete_work_order():
     data = request.get_json()
     response = post_completion(data)
     return response
+
+@work_orders_bp.put("/<work_order_id>/units/<int:unit_number>/stations/<station_number>/comment")
+def update_unit_station_comment():
