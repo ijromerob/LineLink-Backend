@@ -139,6 +139,8 @@ CREATE TABLE PartRequests (
   request_date TIMESTAMP DEFAULT NOW(),
   status TEXT DEFAULT 'pending' -- Optional: 'pending', 'fulfilled', 'cancelled'
 );
+ALTER TABLE WorkOrders
+ADD COLUMN is_completed BOOLEAN DEFAULT FALSE;
 ------------------------------------
 -- MOCK DATA
 -- 1. Parts

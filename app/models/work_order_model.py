@@ -9,10 +9,11 @@ SELECT
   wo.quantity_to_produce,
   COUNT(wop.part_number) AS total_parts_needed,
   COUNT(CASE WHEN wop.quantity_supplied > 0 THEN 1 END) AS parts_supplied,
-  COUNT(CASE WHEN wop.quantity_supplied = 0 THEN 1 END) AS parts_missing
+  COUNT(CASE WHEN wop.quantity_supplied = 0 THEN 1 END) AS parts_missing,
+  wo.is_completed
 FROM WorkOrders wo
 JOIN WorkOrderParts wop ON wo.work_order_id = wop.work_order_id
-GROUP BY wo.work_order_id, wo.product_number, wo.quantity_to_produce
+GROUP BY wo.work_order_id, wo.product_number, wo.quantity_to_produce, wo.is_completed
 ORDER BY wo.work_order_id ASC;
 """
 
@@ -33,6 +34,7 @@ def retrieve_work_orders():
                         total_parts_needed,
                         parts_supplied,
                         parts_missing,
+                        is_completed,
                     ) = row
                     work_orders.append(
                         {
@@ -42,6 +44,7 @@ def retrieve_work_orders():
                             "total_parts_needed": total_parts_needed,
                             "parts_supplied": parts_supplied,
                             "parts_missing": parts_missing,
+                            "is_completed": is_completed,
                         }
                     )
         return jsonify({"work_orders": work_orders}), 200
@@ -53,17 +56,25 @@ GET_WORK_ORDER_BY_ID = """
 SELECT
   uss.unit_number,
   uss.station_number,
-  uss.status,
+  uss.status AS unit_status,
   swop.part_number,
   p.description AS part_description,
   swop.quantity_needed AS quantity_required,
-  swop.quantity_supplied
+  swop.quantity_supplied,
+  woss.status AS station_status,
+  woss.notes AS station_comments,
+  wo.is_completed
 FROM UnitStationStatus uss
 JOIN StationWorkOrderParts swop
   ON swop.work_order_id = uss.work_order_id
   AND swop.station_number = uss.station_number
 JOIN Parts p
   ON swop.part_number = p.part_number
+JOIN WorkOrderStationStatus woss
+  ON woss.work_order_id = uss.work_order_id
+  AND woss.station_number = uss.station_number
+JOIN WorkOrders wo
+  ON wo.work_order_id = uss.work_order_id
 WHERE uss.work_order_id = %s
 ORDER BY uss.unit_number, uss.station_number;
 """
@@ -77,14 +88,19 @@ def retrieve_units_by_work_order_id(work_order_id):
                 cursor.execute(GET_WORK_ORDER_BY_ID, (work_order_id,))
                 results = cursor.fetchall()
                 units_dict = {}
+
+                is_completed = results[0][-1]
                 for (
                     unit_number,
                     station_number,
-                    status,
+                    unit_status,
                     part_number,
                     part_description,
                     quantity_required,
                     quantity_supplied,
+                    station_status,
+                    station_comments,
+                    is_completed,
                 ) in results:
                     if unit_number not in units_dict:
                         units_dict[unit_number] = {
@@ -95,7 +111,9 @@ def retrieve_units_by_work_order_id(work_order_id):
                     units_dict[unit_number]["stations"].append(
                         {
                             "station_number": station_number,
-                            "status": status,
+                            "unit_status": unit_status,
+                            "station_status": station_status,
+                            "station_comments": station_comments,
                             "part_number": part_number,
                             "part_description": part_description,
                             "quantity_required": float(quantity_required),
@@ -104,7 +122,8 @@ def retrieve_units_by_work_order_id(work_order_id):
                     )
 
                 units = list(units_dict.values())
-                return jsonify({"units": units}), 200
+
+                return jsonify({"units": units, "is_completed": is_completed}), 200
 
     except ValueError:
         return jsonify({"error": "Invalid work order ID format"}), 400
@@ -183,5 +202,53 @@ def add_work_order(data):
             ),
             201,
         )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+UPDATE_WORK_ORDER_COMPLETE = """
+UPDATE WorkOrders
+SET is_completed = TRUE
+WHERE work_order_id = %s
+  AND NOT EXISTS (
+    SELECT 1 FROM WorkOrderStationStatus
+    WHERE work_order_id = %s AND status != 'completed'
+  )
+RETURNING work_order_id;
+"""
+
+
+def post_completion(data):
+    work_order_str = data["work_order_id"]
+    if not work_order_str.startswith("WO") or not work_order_str[2:].isdigit():
+        return jsonify({"error": "Invalid work_order_id format"}), 400
+
+    work_order_id = int(work_order_str[2:])
+
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    UPDATE_WORK_ORDER_COMPLETE, (work_order_id, work_order_id)
+                )
+                result = cursor.fetchone()
+                if result:
+                    return (
+                        jsonify(
+                            {
+                                "message": "Work order marked as complete",
+                                "work_order_id": f"WO{result[0]:07d}",
+                            }
+                        ),
+                        200,
+                    )
+                else:
+                    return (
+                        jsonify(
+                            {"message": "Work order is not ready to be marked complete"}
+                        ),
+                        400,
+                    )
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
