@@ -12,50 +12,88 @@ work_orders_bp = Blueprint("work_orders", __name__)
 @work_orders_bp.get("/")
 def obtain_work_orders():
     """
-    Get all work orders with supply status
+    Get Unit Status and Parts for a Work Order
     ---
     tags:
       - Work Orders
-    summary: Retrieve all work orders with supply and progress information
-    description: Returns a list of work orders, showing how many parts are needed, how many have been supplied, and how many are still missing.
-    produces:
-      - application/json
+    summary: Retrieve all units and their station-level part statuses and comments for a given work order.
+    parameters:
+      - name: work_order_id
+        in: path
+        required: true
+        description: Numeric ID of the work order (e.g., 1 for WO0000001)
+        schema:
+          type: integer
     responses:
       200:
-        description: A list of work orders
-        schema:
-          type: object
-          properties:
-            work_orders:
-              type: array
-              items:
-                type: object
-                properties:
-                  work_order_id:
-                    type: string
-                    example: "WO0000001"
-                  product_number:
-                    type: string
-                    example: "100-00001"
-                  quantity_to_produce:
-                    type: integer
-                    example: 10
-                  total_parts_needed:
-                    type: integer
-                    example: 4
-                  parts_supplied:
-                    type: integer
-                    example: 2
-                  parts_missing:
-                    type: integer
-                    example: 2
+        description: Units and station data retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_completed:
+                  type: boolean
+                  example: false
+                units:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      unit_number:
+                        type: integer
+                        example: 1
+                      stations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            station_number:
+                              type: string
+                              example: "1"
+                            unit_status:
+                              type: string
+                              enum: ["not_started", "in_progress", "completed", "alert", "hold"]
+                              example: "in_progress"
+                            station_status:
+                              type: string
+                              enum: ["not_started", "in_progress", "completed", "alert", "hold"]
+                              example: "in_progress"
+                            station_comments:
+                              type: string
+                              example: "Delay due to part shortage"
+                            part_number:
+                              type: string
+                              example: "200-00001"
+                            part_description:
+                              type: string
+                              example: "Car Door"
+                            quantity_required:
+                              type: number
+                              example: 4
+                            quantity_supplied:
+                              type: number
+                              example: 2
+      400:
+        description: Invalid work order ID format
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Invalid work order ID format
       500:
-        description: Server error
-        schema:
-          type: object
-          properties:
-            error:
-              type: string
+        description: Server error while retrieving units
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Database connection failed
     """
 
     response = retrieve_work_orders()
@@ -69,11 +107,11 @@ def get_work_order_by_id(work_order_id):
     ---
     tags:
       - Work Orders
-    summary: Retrieve units for a work order with station status and part info
+    summary: Retrieve units for a work order with station status, part info, and completion status
     description: |
       Returns an array of units belonging to a specific work order.
-      Each unit contains its associated stations, status (in progress, completed, etc.),
-      and part requirements including quantities and descriptions.
+      Each unit contains its associated stations, statuses, comments, and part requirements.
+      Also includes a flag indicating whether the overall work order is completed.
     parameters:
       - name: work_order_id
         in: path
@@ -82,10 +120,13 @@ def get_work_order_by_id(work_order_id):
         type: string
     responses:
       200:
-        description: A list of units and their station progress
+        description: Work order details with units and station progress
         schema:
           type: object
           properties:
+            is_completed:
+              type: boolean
+              example: false
             units:
               type: array
               items:
@@ -102,15 +143,17 @@ def get_work_order_by_id(work_order_id):
                         station_number:
                           type: string
                           example: "1"
-                        status:
+                        unit_status:
                           type: string
-                          enum:
-                            - not_started
-                            - in_progress
-                            - completed
-                            - alert
-                            - hold
+                          enum: ["not_started", "in_progress", "completed", "alert", "hold"]
                           example: "in_progress"
+                        station_status:
+                          type: string
+                          enum: ["not_started", "in_progress", "completed", "alert", "hold"]
+                          example: "completed"
+                        station_comments:
+                          type: string
+                          example: "Waiting on inspection"
                         part_number:
                           type: string
                           example: "200-00001"
@@ -119,9 +162,11 @@ def get_work_order_by_id(work_order_id):
                           example: "Car Door"
                         quantity_required:
                           type: number
+                          format: float
                           example: 4
                         quantity_supplied:
                           type: number
+                          format: float
                           example: 2
       400:
         description: Invalid work order ID format
@@ -140,7 +185,11 @@ def get_work_order_by_id(work_order_id):
               type: string
               example: "Database connection failed"
     """
-    integer_work_order_id = int(work_order_id.replace("WO", ""))
+    id_part = work_order_id[2:]
+    if not id_part or not id_part.isdigit():
+        return jsonify({"error": "Invalid work order ID format"}), 400
+
+    integer_work_order_id = int(id_part)
     response = retrieve_units_by_work_order_id(integer_work_order_id)
     return response
 

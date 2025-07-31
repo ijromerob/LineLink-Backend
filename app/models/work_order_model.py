@@ -53,17 +53,25 @@ GET_WORK_ORDER_BY_ID = """
 SELECT
   uss.unit_number,
   uss.station_number,
-  uss.status,
+  uss.status AS unit_status,
   swop.part_number,
   p.description AS part_description,
   swop.quantity_needed AS quantity_required,
-  swop.quantity_supplied
+  swop.quantity_supplied,
+  woss.status AS station_status,
+  woss.notes AS station_comments,
+  wo.is_completed
 FROM UnitStationStatus uss
 JOIN StationWorkOrderParts swop
   ON swop.work_order_id = uss.work_order_id
   AND swop.station_number = uss.station_number
 JOIN Parts p
   ON swop.part_number = p.part_number
+JOIN WorkOrderStationStatus woss
+  ON woss.work_order_id = uss.work_order_id
+  AND woss.station_number = uss.station_number
+JOIN WorkOrders wo
+  ON wo.work_order_id = uss.work_order_id
 WHERE uss.work_order_id = %s
 ORDER BY uss.unit_number, uss.station_number;
 """
@@ -77,14 +85,19 @@ def retrieve_units_by_work_order_id(work_order_id):
                 cursor.execute(GET_WORK_ORDER_BY_ID, (work_order_id,))
                 results = cursor.fetchall()
                 units_dict = {}
+
+                is_completed = results[0][-1]
                 for (
                     unit_number,
                     station_number,
-                    status,
+                    unit_status,
                     part_number,
                     part_description,
                     quantity_required,
                     quantity_supplied,
+                    station_status,
+                    station_comments,
+                    is_completed,
                 ) in results:
                     if unit_number not in units_dict:
                         units_dict[unit_number] = {
@@ -95,7 +108,9 @@ def retrieve_units_by_work_order_id(work_order_id):
                     units_dict[unit_number]["stations"].append(
                         {
                             "station_number": station_number,
-                            "status": status,
+                            "unit_status": unit_status,
+                            "station_status": station_status,
+                            "station_comments": station_comments,
                             "part_number": part_number,
                             "part_description": part_description,
                             "quantity_required": float(quantity_required),
@@ -104,7 +119,8 @@ def retrieve_units_by_work_order_id(work_order_id):
                     )
 
                 units = list(units_dict.values())
-                return jsonify({"units": units}), 200
+
+                return jsonify({"units": units, "is_completed": is_completed}), 200
 
     except ValueError:
         return jsonify({"error": "Invalid work order ID format"}), 400
