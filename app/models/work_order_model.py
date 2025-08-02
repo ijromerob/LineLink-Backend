@@ -62,7 +62,7 @@ SELECT
   swop.quantity_needed AS quantity_required,
   swop.quantity_supplied,
   woss.status AS station_status,
-  woss.notes AS station_comments,
+  uss.notes AS station_comments,
   wo.is_completed
 FROM UnitStationStatus uss
 JOIN StationWorkOrderParts swop
