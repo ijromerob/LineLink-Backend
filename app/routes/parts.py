@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from app.models.parts_model import get_all_products, get_needed_parts, add_part_request
+from ..utils.jwt_helper import token_required
 
 parts_bp = Blueprint("parts", __name__)
 
