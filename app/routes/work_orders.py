@@ -286,41 +286,40 @@ def update_unit_station_comment(work_order_id, unit_number, station_number):
       - Work Orders
     summary: Add or update a comment for a unit at a specific station
     description: |
-      This endpoint allows you to add or update a comment for a specific unit number and station number within a given work order.
+      Adds or updates a comment for a specific unit and station in a given work order.
+
     parameters:
       - name: work_order_id
         in: path
         required: true
-        description: Work order ID (e.g., WO0000001)
         schema:
           type: string
-        example: WO0000001
+        description: Work order ID (e.g., WO0000001)
       - name: unit_number
         in: path
         required: true
-        description: Unit number within the work order
         schema:
           type: integer
-        example: 2
+        description: Unit number within the work order
       - name: station_number
         in: path
         required: true
-        description: Station number where the comment is being added
         schema:
           type: string
-        example: "3"
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-              - comment
-            properties:
-              comment:
-                type: string
-                example: "Missing parts - delayed arrival"
+        description: Station number (as string)
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - comment
+          properties:
+            comment:
+              type: string
+              example: "missing part 222-22222"
+              description:
+
     responses:
       200:
         description: Comment successfully updated
@@ -333,7 +332,7 @@ def update_unit_station_comment(work_order_id, unit_number, station_number):
                   type: string
                   example: Comment updated successfully
       404:
-        description: The specified unit/station combination was not found
+        description: No matching record found to update
         content:
           application/json:
             schema:
@@ -343,7 +342,7 @@ def update_unit_station_comment(work_order_id, unit_number, station_number):
                   type: string
                   example: Record not found
       500:
-        description: Internal server error
+        description: Server error
         content:
           application/json:
             schema:
@@ -351,7 +350,7 @@ def update_unit_station_comment(work_order_id, unit_number, station_number):
               properties:
                 error:
                   type: string
-                  example: Unexpected server error occurred
+                  example: Internal server error
     """
     data = request.get_json()
     response = post_comment(work_order_id, unit_number, station_number, data)
