@@ -1,14 +1,18 @@
 from flask import Blueprint, request
 from app.models.stations_model import post_comment
+from ..utils.jwt_helper import token_required
 
 stations_bp = Blueprint("stations", __name__)
 
 
 @stations_bp.post("/comment")
+@token_required
 def add_comment():
     """
     Add or Update a Comment on a Station for a Work Order
     ---
+    security:
+      - Bearer: []
     tags:
       - Stations
     summary: Add or update comments for a given station on a specific work order

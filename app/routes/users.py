@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from app.models.user_model import create_user, log_in_user, patch_user_company
+from ..utils.jwt_helper import token_required
 
 users_bp = Blueprint("users", __name__)
 
@@ -140,10 +141,13 @@ def log_in():
 
 
 @users_bp.patch("/<int:user_id>/company")
+@token_required
 def change_company(user_id):
     """
     Update User's Company
     ---
+    security:
+      - Bearer: []
     tags:
       - Users
     summary: Update the company of a specific user

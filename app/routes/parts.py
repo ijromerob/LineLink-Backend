@@ -77,10 +77,13 @@ def get_parts_needed():
 
 
 @parts_bp.post("/part_request")
+@token_required
 def post_part_request():
     """
     Request Parts from Warehouse
     ---
+    security:
+      - Bearer: []
     tags:
       - Parts
     summary: Supply parts to a station for a given work order
