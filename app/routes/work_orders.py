@@ -6,6 +6,7 @@ from app.models.work_order_model import (
     post_completion,
     post_comment,
 )
+from ..utils.jwt_helper import token_required
 
 work_orders_bp = Blueprint("work_orders", __name__)
 
@@ -171,10 +172,13 @@ def get_work_order_by_id(work_order_id):
 
 
 @work_orders_bp.post("/create_workorder")
+@token_required
 def create_work_order():
     """
     Create a New Work Order
     ---
+    security:
+      - Bearer: []
     tags:
       - Work Orders
     summary: Create a new work order and initialize required parts and statuses.
@@ -219,10 +223,13 @@ def create_work_order():
 
 
 @work_orders_bp.post("/complete")
+@token_required
 def complete_work_order():
     """
     Mark Work Order as Complete
     ---
+    security:
+      - Bearer: []
     tags:
       - Work Orders
     summary: Marks a work order as complete if all stations have finished
@@ -278,10 +285,13 @@ def complete_work_order():
 @work_orders_bp.put(
     "/<work_order_id>/units/<int:unit_number>/stations/<station_number>/comment"
 )
+@token_required
 def update_unit_station_comment(work_order_id, unit_number, station_number):
     """
     Update comment for a specific unit at a station
     ---
+    security:
+      - Bearer: []
     tags:
       - Work Orders
     summary: Add or update a comment for a unit at a specific station

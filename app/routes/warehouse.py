@@ -1,14 +1,18 @@
 from flask import Blueprint, request
 from app.models.warehouse_model import post_dispatch_parts
+from ..utils.jwt_helper import token_required
 
 warehouse_bp = Blueprint("warehouse", __name__)
 
 
 @warehouse_bp.post("/dispatch")
+@token_required
 def dispatch_parts():
     """
     Dispatch Parts from Warehouse
     ---
+    security:
+      - Bearer: []
     tags:
       - Warehouse
     summary: Log the dispatch of parts from the warehouse to a specific station for a work order

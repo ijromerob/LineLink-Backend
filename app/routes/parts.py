@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from app.models.parts_model import get_all_products, get_needed_parts, add_part_request
+from ..utils.jwt_helper import token_required
 
 parts_bp = Blueprint("parts", __name__)
 
@@ -76,10 +77,13 @@ def get_parts_needed():
 
 
 @parts_bp.post("/part_request")
+@token_required
 def post_part_request():
     """
     Request Parts from Warehouse
     ---
+    security:
+      - Bearer: []
     tags:
       - Parts
     summary: Supply parts to a station for a given work order
