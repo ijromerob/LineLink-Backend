@@ -4,6 +4,7 @@ from app.models.work_order_model import (
     retrieve_units_by_work_order_id,
     add_work_order,
     post_completion,
+    post_comment,
 )
 
 work_orders_bp = Blueprint("work_orders", __name__)
@@ -273,5 +274,85 @@ def complete_work_order():
     response = post_completion(data)
     return response
 
-@work_orders_bp.put("/<work_order_id>/units/<int:unit_number>/stations/<station_number>/comment")
-def update_unit_station_comment():
+
+@work_orders_bp.put(
+    "/<work_order_id>/units/<int:unit_number>/stations/<station_number>/comment"
+)
+def update_unit_station_comment(work_order_id, unit_number, station_number):
+    """
+    Update comment for a specific unit at a station
+    ---
+    tags:
+      - Work Orders
+    summary: Add or update a comment for a unit at a specific station
+    description: |
+      This endpoint allows you to add or update a comment for a specific unit number and station number within a given work order.
+    parameters:
+      - name: work_order_id
+        in: path
+        required: true
+        description: Work order ID (e.g., WO0000001)
+        schema:
+          type: string
+        example: WO0000001
+      - name: unit_number
+        in: path
+        required: true
+        description: Unit number within the work order
+        schema:
+          type: integer
+        example: 2
+      - name: station_number
+        in: path
+        required: true
+        description: Station number where the comment is being added
+        schema:
+          type: string
+        example: "3"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - comment
+            properties:
+              comment:
+                type: string
+                example: "Missing parts - delayed arrival"
+    responses:
+      200:
+        description: Comment successfully updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Comment updated successfully
+      404:
+        description: The specified unit/station combination was not found
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Record not found
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Unexpected server error occurred
+    """
+    data = request.get_json()
+    response = post_comment(work_order_id, unit_number, station_number, data)
+    return response

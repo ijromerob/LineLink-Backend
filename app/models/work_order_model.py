@@ -252,3 +252,30 @@ def post_completion(data):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+INSERT_COMMENT_PER_STATION = """
+UPDATE UnitStationStatus
+SET notes = %s, updated_at = NOW()
+WHERE work_order_id = %s AND unit_number = %s AND station_number = %s
+"""
+
+
+def post_comment(work_order_id, unit_number, station_number, data):
+    try:
+        work_order_id_int = int(work_order_id[2:])
+        comment = data["comment"]
+
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    INSERT_COMMENT_PER_STATION,
+                    (comment, work_order_id_int, unit_number, station_number),
+                )
+                if cursor.rowcount == 0:
+                    return jsonify({"error": "Record not found"}), 404
+
+        return jsonify({"message": "Comment updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
