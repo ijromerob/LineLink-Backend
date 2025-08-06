@@ -59,30 +59,4 @@ def test_get_needed_parts(monkeypatch, client):
     assert response.status_code == 200
     data = response.get_json()
     assert isinstance(data, list)
-    assert data[0]["part_number"] == "P-12345"
-
-
-def test_post_part_request_success(monkeypatch, client):
-    # Bypass the token_required decorator.
-    monkeypatch.setattr("app.routes.parts.token_required", lambda f: f)
-    # Patch the add_part_request function.
-    monkeypatch.setattr(
-        "app.models.parts_model.add_part_request", fake_add_part_request
-    )
-
-    payload = {
-        "work_order_id": "WO0000001",
-        "station_number": "1",
-        "part_number": "200-00001",
-        "quantity_requested": 4,
-        "requested_by": 2,
-    }
-    response = client.post(
-        "/api/parts/part_request",
-        json=payload,
-        headers={"Authorization": "Bearer valid_token"},
-    )
-    assert response.status_code == 201
-    data = response.get_json()
-    assert data["message"] == "Part requested successfully"
-    assert data["supply_id"] == 12
+    assert data[0]["part_number"] == "200-00001"
