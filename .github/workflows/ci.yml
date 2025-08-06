@@ -28,6 +28,7 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       FLASK_ENV: testing
+      GOOGLE_DISCOVERY_URL: "https://accounts.google.com/.well-known/openid-configuration"
 
     steps:
     - name: Checkout code
