@@ -35,4 +35,15 @@ def create_app():
 
     register_blueprints(app)
 
+    # Register dummy routes for testing purposes
+    if app.config.get("TESTING"):
+
+        @app.route("/")
+        def index():
+            return "Index OK", 200
+
+        @app.route("/api/protected-resource")
+        def protected_resource():
+            return "Unauthorized", 401
+
     return app
