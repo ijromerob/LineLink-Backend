@@ -16,7 +16,7 @@ swagger_template = {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
-            "description": "JWT Authorization header using the Bearer scheme. Example: **Bearer &lt;token&gt;**",
+            "description": "JWT Authorization header using the Bearer scheme. Example: **Bearer <token>**",
         }
     },
     "security": [{"Bearer": []}],
@@ -24,19 +24,12 @@ swagger_template = {
 
 
 def create_app():
-
     app = Flask(__name__)
-
-    Swagger(app, template=swagger_template)
-
     app.config.from_object(Config)
 
-    CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
-
-    register_blueprints(app)
-
-    # Register dummy routes for testing purposes
-    if app.config.get("TESTING"):
+    # This will ensure testing dummy routes are added if TESTING is True or FLASK_ENV is testing.
+    if app.config.get("TESTING") or app.config.get("FLASK_ENV") == "testing":
+        app.config["TESTING"] = True
 
         @app.route("/")
         def index():
@@ -45,5 +38,11 @@ def create_app():
         @app.route("/api/protected-resource")
         def protected_resource():
             return "Unauthorized", 401
+
+    Swagger(app, template=swagger_template)
+
+    CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
+
+    register_blueprints(app)
 
     return app
