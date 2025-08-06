@@ -43,7 +43,7 @@ def test_get_products(monkeypatch, client):
     monkeypatch.setattr(
         "app.models.parts_model.get_all_products", fake_get_all_products
     )
-    response = client.get("/products")
+    response = client.get("/api/parts/products")
     assert response.status_code == 200
     data = response.get_json()
     assert isinstance(data, list)
@@ -55,7 +55,7 @@ def test_get_needed_parts(monkeypatch, client):
     monkeypatch.setattr(
         "app.models.parts_model.get_needed_parts", fake_get_needed_parts
     )
-    response = client.get("/needed_parts")
+    response = client.get("/api/parts/needed_parts")
     assert response.status_code == 200
     data = response.get_json()
     assert isinstance(data, list)
@@ -78,7 +78,9 @@ def test_post_part_request_success(monkeypatch, client):
         "requested_by": 2,
     }
     response = client.post(
-        "/part_request", json=payload, headers={"Authorization": "Bearer valid_token"}
+        "/api/parts/part_request",
+        json=payload,
+        headers={"Authorization": "Bearer valid_token"},
     )
     assert response.status_code == 201
     data = response.get_json()
