@@ -1,11 +1,14 @@
 from flask import Blueprint, request
 from app.models.user_model import create_user, log_in_user, patch_user_company
 from ..utils.jwt_helper import token_required
+from ..utils.validators import validate_email, validate_password, validate_company
 
 users_bp = Blueprint("users", __name__)
 
 
 @users_bp.post("/signup")
+@validate_email
+@validate_password
 def add_user():
     """
     Create a new user account
@@ -60,6 +63,7 @@ def add_user():
 
 
 @users_bp.post("/signin")
+@validate_email
 def log_in():
     """
     Authenticate a user and return a JWT token
@@ -142,6 +146,7 @@ def log_in():
 
 @users_bp.patch("/<int:user_id>/company")
 @token_required
+@validate_company
 def change_company(user_id):
     """
     Update User's Company

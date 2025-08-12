@@ -7,6 +7,7 @@ from app.models.work_order_model import (
     post_comment,
 )
 from ..utils.jwt_helper import token_required
+from ..utils.validators import validate_part_number, validate_work_order_id
 
 work_orders_bp = Blueprint("work_orders", __name__)
 
@@ -173,6 +174,7 @@ def get_work_order_by_id(work_order_id):
 
 @work_orders_bp.post("/create_workorder")
 @token_required
+@validate_part_number
 def create_work_order():
     """
     Create a New Work Order
@@ -224,6 +226,7 @@ def create_work_order():
 
 @work_orders_bp.post("/complete")
 @token_required
+@validate_work_order_id
 def complete_work_order():
     """
     Mark Work Order as Complete
@@ -286,6 +289,7 @@ def complete_work_order():
     "/<work_order_id>/units/<int:unit_number>/stations/<station_number>/comment"
 )
 @token_required
+@validate_work_order_id
 def update_unit_station_comment(work_order_id, unit_number, station_number):
     """
     Update comment for a specific unit at a station
