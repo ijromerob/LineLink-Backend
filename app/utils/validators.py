@@ -7,7 +7,11 @@ def validate_part_number(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         data = request.get_json() or {}
-        part_number = data["part_number"] or data["product_number"]
+        if "part_number" not in data:
+            part_number = data.get("product_number")
+        else:
+            part_number = data["part_number"] or data["product_number"]
+
         if not part_number or not re.match(r"^\d{3}-\d{5}$", part_number):
             return jsonify({"error": "Invalid part_number format"}), 400
         return f(*args, **kwargs)
