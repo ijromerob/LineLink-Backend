@@ -31,3 +31,34 @@ def post_comment(data):
                 return jsonify({"message": "Comment added/updated successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+UPDATE_UNIT_STATION_STATUS = """
+UPDATE UnitStationStatus
+SET status = %s, updated_at = NOW()
+WHERE work_order_id = %s AND unit_number = %s AND station_number = %s
+"""
+
+
+def update_station_status(
+    work_order_str,
+    unit_number,
+    station_number,
+    new_status,
+):
+
+    if not work_order_str.startswith("WO") or not work_order_str[2:].isdigit():
+        return jsonify({"error": "Invalid work_order_id format"}), 400
+
+    work_order_id = int(work_order_str[2:])
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    UPDATE_UNIT_STATION_STATUS,
+                    (new_status, work_order_id, unit_number, station_number),
+                )
+
+                return jsonify({"message": "Status updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
