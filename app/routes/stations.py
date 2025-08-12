@@ -87,7 +87,7 @@ def update_unit_station_status(work_order_id, unit_number, station_number):
         required: true
         description: Station number within the unit.
         type: string
-        example: "S1"
+        example: "1"
       - in: body
         name: body
         required: true
