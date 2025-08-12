@@ -23,7 +23,7 @@ def fake_get_needed_parts():
     data = [
         {
             "work_order": "WO0000001",
-            "part_number": "P-12345",
+            "part_number": "222-12345",
             "description": "Widget Housing",
             "quantity_required": 100,
             "quantity_supplied": 75,
