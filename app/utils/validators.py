@@ -30,10 +30,17 @@ def validate_email(f):
 def validate_work_order_id(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        data = request.get_json() or {}
-        work_order_id = data["work_order_id"]
+        work_order_id = kwargs.get("work_order_id")
+        if not work_order_id:
+            data = request.get_json(silent=True) or {}
+            work_order_id = data.get("work_order_id")
+
+        if not work_order_id:
+            return jsonify({"error": "Missing work_order_id parameter"}), 400
+
         if not work_order_id.startswith("WO") or not work_order_id[2:].isdigit():
             return jsonify({"error": "Invalid work_order_id format"}), 400
+
         return f(*args, **kwargs)
 
     return decorated
