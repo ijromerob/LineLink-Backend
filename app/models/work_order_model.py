@@ -220,8 +220,6 @@ RETURNING work_order_id;
 
 def post_completion(data):
     work_order_str = data["work_order_id"]
-    if not work_order_str.startswith("WO") or not work_order_str[2:].isdigit():
-        return jsonify({"error": "Invalid work_order_id format"}), 400
 
     work_order_id = int(work_order_str[2:])
 

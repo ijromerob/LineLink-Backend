@@ -1,12 +1,14 @@
 from flask import Blueprint, request
 from app.models.stations_model import post_comment, update_station_status
 from ..utils.jwt_helper import token_required
+from ..utils.validators import validate_work_order_id, validate_part_number
 
 stations_bp = Blueprint("stations", __name__)
 
 
 @stations_bp.post("/comment")
 @token_required
+@validate_work_order_id
 def add_comment():
     """
     Add or Update a Comment on a Station for a Work Order
@@ -63,6 +65,7 @@ def add_comment():
 @stations_bp.put(
     "/workorders/<string:work_order_id>/units/<int:unit_number>/stations/<string:station_number>/status"
 )
+@validate_work_order_id
 def update_unit_station_status(work_order_id, unit_number, station_number):
     """
      Update the status and notes for a specific station in a specific unit of a work order
