@@ -10,7 +10,7 @@ def validate_part_number(f):
         if "part_number" not in data:
             part_number = data.get("product_number")
         else:
-            part_number = data["part_number"] or data["product_number"]
+            part_number = data["part_number"]
 
         if not part_number or not re.match(r"^\d{3}-\d{5}$", part_number):
             return jsonify({"error": "Invalid part_number format"}), 400
