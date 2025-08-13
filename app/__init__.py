@@ -41,7 +41,11 @@ def create_app():
 
     Swagger(app, template=swagger_template)
 
-    CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
+    CORS(
+        app,
+        origins=["http://localhost:3000", "https://linelink-frontend.onrender.com"],
+        supports_credentials=True,
+    )
 
     register_blueprints(app)
 
