@@ -47,6 +47,11 @@ def create_app():
         supports_credentials=True,
     )
 
+    @app.before_request
+    def handle_options():
+        if request.method == "OPTIONS":
+            return "", 200
+
     register_blueprints(app)
 
     return app
