@@ -27,7 +27,6 @@ def obtain_work_orders():
         - Quantity to produce
         - Total parts needed
         - Parts supplied
-        - Parts missing
         - Completion status
     responses:
       200:
@@ -57,9 +56,6 @@ def obtain_work_orders():
                       parts_supplied:
                         type: integer
                         example: 3
-                      parts_missing:
-                        type: integer
-                        example: 1
                       is_completed:
                         type: boolean
                         example: false
