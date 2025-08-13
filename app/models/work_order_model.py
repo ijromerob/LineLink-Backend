@@ -7,14 +7,15 @@ SELECT
   'WO' || LPAD(wo.work_order_id::text, 7, '0') AS formatted_work_order_id,
   wo.product_number,
   wo.quantity_to_produce,
-  COUNT(wop.part_number) AS total_parts_needed,
-  COUNT(CASE WHEN wop.quantity_supplied > 0 THEN 1 END) AS parts_supplied,
-  COUNT(CASE WHEN wop.quantity_supplied = 0 THEN 1 END) AS parts_missing,
+  SUM(swop.quantity_needed) AS total_quantity_needed,
+  SUM(COALESCE(swop.quantity_supplied, 0)) AS total_quantity_supplied,
   wo.is_completed
 FROM WorkOrders wo
-JOIN WorkOrderParts wop ON wo.work_order_id = wop.work_order_id
+JOIN StationWorkOrderParts swop ON wo.work_order_id = swop.work_order_id
 GROUP BY wo.work_order_id, wo.product_number, wo.quantity_to_produce, wo.is_completed
 ORDER BY wo.work_order_id ASC;
+
+
 """
 
 
@@ -31,9 +32,8 @@ def retrieve_work_orders():
                         formatted_work_order_id,
                         product_number,
                         quantity_to_produce,
-                        total_parts_needed,
-                        parts_supplied,
-                        parts_missing,
+                        total_quantity_needed,
+                        total_quantity_supplied,
                         is_completed,
                     ) = row
                     work_orders.append(
@@ -41,9 +41,8 @@ def retrieve_work_orders():
                             "work_order_id": formatted_work_order_id,
                             "product_number": product_number,
                             "quantity_to_produce": quantity_to_produce,
-                            "total_parts_needed": total_parts_needed,
-                            "parts_supplied": parts_supplied,
-                            "parts_missing": parts_missing,
+                            "total_parts_needed": total_quantity_needed,
+                            "total_parts_supplied": total_quantity_supplied,
                             "is_completed": is_completed,
                         }
                     )
