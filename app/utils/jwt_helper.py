@@ -8,23 +8,15 @@ def token_required(f):
 
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_header = request.headers.get("Authorization", None)
-        if not auth_header:
-            return jsonify({"error": "Authorization header is missing"}), 401
-
-        parts = auth_header.split()
-
-        if len(parts) != 2 or parts[0].lower() != "bearer":
-            return (
-                jsonify(
-                    {
-                        "error": "Authorization header must be in the format: Bearer <token>"
-                    }
-                ),
-                401,
-            )
-
-        token = parts[1]
+        token = request.cookies.get("authToken")
+        if not token:
+            auth_header = request.headers.get("Authorization", None)
+            if auth_header:
+                parts = auth_header.split()
+                if len(parts) == 2 and parts[0].lower() == "bearer":
+                    token = parts[1]
+        if not token:
+            return jsonify({"error": "Authentication token is missing"}), 401
 
         try:
             data = jwt.decode(token, Config.JWT_SECRET_KEY, algorithms=["HS256"])

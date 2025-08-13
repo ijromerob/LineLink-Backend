@@ -13,3 +13,4 @@ class Config:
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "super-secret-key")
     GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL")
+    FRONTEND_URL = os.getenv("FRONTEND_URL")

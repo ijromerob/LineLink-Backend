@@ -1,7 +1,7 @@
 import os
 import requests
 import jwt
-from flask import Blueprint, redirect, request, jsonify
+from flask import Blueprint, redirect, request, jsonify, make_response
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
 from app.config import Config
@@ -147,19 +147,14 @@ def callback():
     }
 
     token = jwt.encode(payload, Config.JWT_SECRET_KEY, algorithm="HS256")
-
-    return (
-        jsonify(
-            {
-                "message": "Login successful",
-                "token": token,
-                "user": {
-                    "email": email,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "account_type": account_type,
-                },
-            }
-        ),
-        200,
+    response = make_response(redirect((f"{Config.FRONTEND_URL}/dashboard")))
+    response.set_cookie(
+        "authToken",
+        token,
+        httponly=True,
+        secure=True,
+        samesite="Lax",
+        max_age=4 * 60 * 60,
+        path="/",
     )
+    return response
