@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from .routes import register_blueprints
 from .config import Config
 from flasgger import Swagger
